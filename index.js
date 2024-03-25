@@ -14,20 +14,33 @@ const routes = {
         return response.end()
     },
     '/heroes:post': async (request, response) => {
+        // entende como outro contexto, entao erro aqui dentro nao é pego pelo contexto maior
         for await (const data of request) {
-            const item = JSON.parse(data)
-            const hero = new Hero(item)
-            const{error, valid} = hero.isValid()
-            if(!valid) {
-                response.writeHead(400, DEFAULT_HEADER)
-                response.write(JSON.stringify({error: error.join(',')}))
-                return response.end()
-            }
+            try {
+                // await Promise.reject('erro!!!')
+                const item = JSON.parse(data)
+                const hero = new Hero(item)
+                const { valid, error } = hero.isValid()
+                if (!valid) {
+                    response.writeHead(400, DEFAULT_HEADER)
+                    response.write(JSON.stringify({ error: error.join(',') }))
 
-            const id = await heroService.create(hero)
-            response.writeHead(201, DEFAULT_HEADER)
-            
+                    return response.end()
+                }
+                
+                const id = await heroService.create(hero)
+                
+                response.writeHead(201, DEFAULT_HEADER)
+                response.write(JSON.stringify({ success: 'User Created has succeeded!', id }))
+                
+                // só jogamos o retorno pois sabemos que é um objeto body por requisicao
+                // se fosse um arquivo, ele poderia chamar mais de uma vez, aí removeriamos o return
+                return response.end()
+            } catch (error) {
+                return handleError(response)(error)
+            }
         }
+
     },
     default: (request, response) => {
         response.write('hello')

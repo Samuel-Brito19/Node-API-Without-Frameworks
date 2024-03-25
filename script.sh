@@ -8,3 +8,4 @@ echo '\n\n requesting invalid route'
 curl --silent -X POST \
     --data-binary '{"invalid": "data"}'\
     localhost:3000/heroes
+
